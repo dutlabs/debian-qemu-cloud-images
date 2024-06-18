@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # these are overwritten by "settings.sh"
+  DEBIAN_VERSION: ""
+  DEBIAN_VERNAME: ""
+  DEBIAN_RELEASE: ""
+  DEBIAN_FILEURL: ""
+  GIT_CACHE_NAME: ""
+  GITHUB_RELEASE: ""
+  SOURCE_IMGFILE: ""
+  TARGET_IMGFILE: ""
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load settings
+        run: source settings.sh
+
+      - name: Create a new GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          # Create a new GitHub Release if it does not exists
+          gh release list | grep "${{ github.ref_name }}" ||
+            gh release create "${{ github.ref_name }}" \
+              --repo="${{ github.repository }}" \
+              --title="${{ github.ref_name }}" \
+              --notes="Debian ${{ env.DEBIAN_VERSION }} \"${{ env.DEBIAN_VERNAME }}\" ${{ env.DEBIAN_RELEASE }}" \
+              --verify-tag \
+              --latest
+
+  download:
+    name: Download base image
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load settings
+        run: source settings.sh
+
+      - id: cache
+        name: Cache
+        uses: actions/cache@v4
+        with:
+          key: ${{ env.GIT_CACHE_NAME }}
+          path: ${{ env.SOURCE_IMGFILE }}
+
+      - name: Download base image
+        run: wget "${{ env.DEBIAN_FILEURL }}" -O ${{ env.SOURCE_IMGFILE }}
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Upload original image artifact
+        run: gh release upload "${{ env.GITHUB_RELEASE }}" ${{ env.SOURCE_IMGFILE }} --clobber
+
+  customize:
+    name: Customize image
+    needs: download
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        variant: [qemu]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load settings
+        run: source settings.sh ${{ matrix.variant }}
+
+      - name: Load cached files
+        uses: actions/cache@v4
+        with:
+          key: ${{ env.GIT_CACHE_NAME }}
+          path: ${{ env.SOURCE_IMGFILE }}
+
+      - name: Install libguestfs
+        run: sudo apt-get install -y libguestfs-tools
+
+      - name: Rebuild image
+        run: |
+          sudo virt-customize -a "${{ env.SOURCE_IMGFILE }}" \
+            --run "customize-${{ matrix.variant }}.sh" \
+            --run-command "apt-get --yes autoremove" \
+            --run-command "apt-get --yes clean autoclean" \
+            --run-command "rm -rf /var/lib/apt/lists/*" \
+            --no-logfile
+
+      - name: Compress image artifact
+        run: sudo virt-sparsify ${{ env.SOURCE_IMGFILE }} --compress ${{ env.TARGET_IMGFILE }}
+
+      - name: Upload custom image to a GitHub Release
+        run: gh release upload "${{ env.GITHUB_RELEASE }}" ${{ env.TARGET_IMGFILE }} --clobber
