@@ -1,0 +1,38 @@
+name: Marvin
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Check for new release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load settings
+        run: source settings.sh
+
+      - name: New release
+        run: |
+          # Releases
+          releases=$(
+            curl -s "https://cloud.debian.org/images/cloud/$DEBIAN_VERNAME/" |
+            sed -nr 's/.+<a href="([0-9]{8}-[0-9]{4})\/.+/\1/p' |
+            sed -e "1,/$DEBIAN_RELEASE/d" |
+            sort
+          )
+          echo "$releases" > releases.out
+          echo "$releases"
+
+      - name: Summary
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<-EOF
+            ### New release! :rocket:
+          EOF
+
+          while read release; do
+            echo "* [$release](https://cloud.debian.org/images/cloud/bookworm/$release/)"
+          done < "releases.out" >> $GITHUB_STEP_SUMMARY
