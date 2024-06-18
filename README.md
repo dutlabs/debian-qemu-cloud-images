@@ -1,2 +1,3 @@
-# debian-qemu-cloud-images
-Custom Debian cloud images specially tailored for QEMU/KVM and Proxmox.
+# Debian QEMU Cloud Images
+
+Debian cloud images specially tailored for QEMU/KVM and Proxmox.
