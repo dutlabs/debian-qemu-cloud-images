@@ -4,7 +4,7 @@
 curl -fsSL https://apt.grafana.com/gpg-full.key -o /etc/apt/keyrings/grafana.gpg
 
 # Add Grafana's official repository to Apt sources
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com/pool/main/g/grafana-agent-flow $(lsb_release -cs) stable main" | tee -i /etc/apt/sources.list.d/grafana.list
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com/ stable main" | tee -i /etc/apt/sources.list.d/grafana.list
 
 # Install packages
 apt-get --yes update
