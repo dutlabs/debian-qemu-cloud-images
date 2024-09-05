@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Add Grafana's official GPG key
-curl -fsSL https://apt.grafana.com/gpg.key -o /etc/apt/keyrings/grafana.gpg | gpg --dearmor
+# mkdir -p /etc/apt/keyrings/
+curl -fsSL https://apt.grafana.com/gpg-full.key -o /etc/apt/keyrings/grafana.gpg
 
 # Add Grafana's official repository to Apt sources
 cat > /etc/apt/sources.list.d/grafana.list <<-EOF
