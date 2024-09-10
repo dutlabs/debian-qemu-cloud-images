@@ -5,7 +5,7 @@ apt-get --yes update
 apt-get --yes install gpg
 
 # Add Grafana's official GPG key
-curl -fsSL https://apt.grafana.com/gpg.key -o /etc/apt/keyrings/grafana.gpg | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
+curl -fsSL https://apt.grafana.com/gpg.key -o /etc/apt/keyrings/ | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
 
 # Add Docker's official GPG key
 curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
