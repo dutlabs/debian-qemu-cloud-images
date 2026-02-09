@@ -25,7 +25,7 @@ env:
 jobs:
   release:
     name: Create release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -98,9 +98,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libguestfs-tools
-
-      - name: Install libguestfs
-        run: sudo apt-get install -y libguestfs-tools
 
       - name: Rebuild image
         run: |
