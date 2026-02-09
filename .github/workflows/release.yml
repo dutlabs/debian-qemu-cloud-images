@@ -25,7 +25,7 @@ env:
 jobs:
   release:
     name: Create release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -75,7 +75,7 @@ jobs:
   customize:
     name: Customize image
     needs: download
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
