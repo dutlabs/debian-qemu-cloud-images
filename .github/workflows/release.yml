@@ -75,7 +75,7 @@ jobs:
   customize:
     name: Customize image
     needs: download
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -100,7 +100,8 @@ jobs:
       - name: Rebuild image
         run: |
           sudo virt-customize -a "${{ env.SOURCE_IMGFILE }}" \
-            --run "customize-${{ matrix.variant }}.sh" \
+            --run-command "apt-get --yes update" \
+            --run-command "apt-get --yes install qemu-guest-agent" \
             --run-command "apt-get --yes autoremove" \
             --run-command "apt-get --yes clean autoclean" \
             --run-command "rm -rf /var/lib/apt/lists/*" \
