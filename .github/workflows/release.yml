@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Load settings
         run: source settings.sh
@@ -54,14 +54,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Load settings
         run: source settings.sh
 
       - id: cache
         name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: ${{ env.GIT_CACHE_NAME }}
           path: ${{ env.SOURCE_IMGFILE }}
@@ -80,17 +80,17 @@ jobs:
 
     strategy:
       matrix:
-        variant: [qemu, base]
+        variant: [qemu, base, docker]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Load settings
         run: source settings.sh ${{ matrix.variant }}
 
       - name: Load cached files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: ${{ env.GIT_CACHE_NAME }}
           path: ${{ env.SOURCE_IMGFILE }}
@@ -102,11 +102,22 @@ jobs:
 
       - name: Rebuild image
         run: |
-          touch customize-qemu.sh # to prevent errors on qemu variant
-          sudo virt-customize -a "${{ env.SOURCE_IMGFILE }}" \
-            --run-command "apt-get --yes update" \
-            --run-command "apt-get --yes install qemu-guest-agent" \
-            --run "customize-${{ matrix.variant }}.sh" \
+          # virt-customize
+          CUSTOMIZATIONS=()
+          VARIANT_SCRIPT="customize-${{ matrix.variant }}.sh"
+
+          DEPS=$(grep "^# deps:" ${VARIANT_SCRIPT} | cut -d: -f2 | tr ',' '\n')
+          if [ -n "$DEPS" ]; then
+            for DEP in $DEPS; do
+              CUSTOMIZATIONS+=(--run "customize-${DEP}.sh")
+            done
+          fi
+
+          if [ -f "${VARIANT_SCRIPT}" ]; then
+            CUSTOMIZATIONS+=(--run "${VARIANT_SCRIPT}")
+          fi
+
+          sudo virt-customize -a "${{ env.SOURCE_IMGFILE }}" ${CUSTOMIZATIONS[@]} \
             --run-command "apt-get --yes autoremove" \
             --run-command "apt-get --yes clean autoclean" \
             --run-command "rm -rf /var/lib/apt/lists/*" \

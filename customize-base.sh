@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+# deps: qemu
 
 # Install packages
-apt-get --yes install htop locales curl
+apt-get --yes install locales curl htop telnet
 
 # Default locale settings
 sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 locale-gen
-localectl set-locale LANG=en_US.UTF-8
+update-locale LANG=en_US.UTF-8
