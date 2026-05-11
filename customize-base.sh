@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# deps: qemu
 
 # Install packages
 apt-get --yes install htop locales curl
