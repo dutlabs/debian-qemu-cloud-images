@@ -120,7 +120,6 @@ jobs:
             --run-command "apt-get --yes clean autoclean" \
             --run-command "rm -rf /var/lib/apt/lists/*" \
             --no-logfile
-        env:
 
       - name: Compress image artifact
         run: sudo virt-sparsify ${{ env.SOURCE_IMGFILE }} --compress ${{ env.TARGET_IMGFILE }}
