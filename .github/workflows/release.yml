@@ -107,7 +107,7 @@ jobs:
           VARIANT_SCRIPT="customize-${{ matrix.variant }}.sh"
 
           DEPS=$(grep "^# deps:" ${VARIANT_SCRIPT} | cut -d: -f2)
-          if [ -n "$DEPS" ];
+          if [ -n "$DEPS" ]; then
             CUSTOMIZATIONS+=(--run "customize-$DEPS.sh")
           fi
 
