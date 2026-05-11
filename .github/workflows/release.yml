@@ -12,7 +12,7 @@ permissions:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # these are overwritten by "settings.sh"
+  # These are placeholders; the "Load settings" steps will populate these in the environment.
   DEBIAN_VERSION: ""
   DEBIAN_VERNAME: ""
   DEBIAN_RELEASE: ""
@@ -35,9 +35,10 @@ jobs:
         run: source settings.sh
 
       - name: Create a new GitHub Release
+        # Only execute if the workflow was triggered by a tag push.
+        # It checks if the release exists first to prevent errors on re-runs.
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          # Create a new GitHub Release if it does not exists
           gh release list | grep "${{ github.ref_name }}" ||
             gh release create "${{ github.ref_name }}" \
               --repo="${{ github.repository }}" \
@@ -79,7 +80,7 @@ jobs:
 
     strategy:
       matrix:
-        variant: [qemu]
+        variant: [qemu, base]
 
     steps:
       - name: Checkout
@@ -101,9 +102,11 @@ jobs:
 
       - name: Rebuild image
         run: |
+          touch customize-qemu.sh # to prevent errors on qemu variant
           sudo virt-customize -a "${{ env.SOURCE_IMGFILE }}" \
             --run-command "apt-get --yes update" \
             --run-command "apt-get --yes install qemu-guest-agent" \
+            --run "customize-${{ matrix.variant }}.sh" \
             --run-command "apt-get --yes autoremove" \
             --run-command "apt-get --yes clean autoclean" \
             --run-command "rm -rf /var/lib/apt/lists/*" \
