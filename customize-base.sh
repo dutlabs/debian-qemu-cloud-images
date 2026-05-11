@@ -2,6 +2,7 @@
 # deps: qemu
 
 # Install packages
+apt-get --yes update
 apt-get --yes install htop locales curl
 
 # Default locale settings
