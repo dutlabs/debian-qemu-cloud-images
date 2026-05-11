@@ -80,7 +80,7 @@ jobs:
 
     strategy:
       matrix:
-        variant: [qemu, base]
+        variant: [qemu, base, docker]
 
     steps:
       - name: Checkout
