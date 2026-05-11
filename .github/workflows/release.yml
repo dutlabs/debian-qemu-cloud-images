@@ -108,7 +108,7 @@ jobs:
 
           DEPS=$(grep "^# deps:" ${VARIANT_SCRIPT} | cut -d: -f2)
           if [ -n "$DEPS" ]; then
-            CUSTOMIZATIONS+=(--run "customize-$DEPS.sh")
+            CUSTOMIZATIONS+=(--run "customize-${DEPS}.sh")
           fi
 
           if [ -f "${VARIANT_SCRIPT}" ]; then
