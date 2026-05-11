@@ -61,7 +61,7 @@ jobs:
 
       - id: cache
         name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: ${{ env.GIT_CACHE_NAME }}
           path: ${{ env.SOURCE_IMGFILE }}
@@ -90,7 +90,7 @@ jobs:
         run: source settings.sh ${{ matrix.variant }}
 
       - name: Load cached files
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: ${{ env.GIT_CACHE_NAME }}
           path: ${{ env.SOURCE_IMGFILE }}
@@ -104,9 +104,15 @@ jobs:
         run: |
           # virt-customize
           CUSTOMIZATIONS=()
+          VARIANT_SCRIPT="customize-${{ matrix.variant }}.sh"
 
-          if [ -f "customize-${{ matrix.variant }}.sh" ]; then
-            CUSTOMIZATIONS+=(--run "customize-${{ matrix.variant }}.sh")
+          DEPS=$(grep "^# deps:" ${VARIANT_SCRIPT} | cut -d: -f2)
+          if [ -n "$DEPS" ];
+            CUSTOMIZATIONS+=(--run "customize-$DEPS.sh")
+          fi
+
+          if [ -f "${VARIANT_SCRIPT}" ]; then
+            CUSTOMIZATIONS+=(--run "${{VARIANT_SCRIPT}}")
           fi
 
           sudo virt-customize -a "${{ env.SOURCE_IMGFILE }}" ${CUSTOMIZATIONS[@]} \
